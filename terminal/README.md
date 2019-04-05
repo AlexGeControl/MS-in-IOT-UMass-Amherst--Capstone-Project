@@ -11,7 +11,9 @@ This document covers:
 * The development environment setup on NVIDIA Jetson TX2 board
 * The deployment of OpenPose on target board
 
-#### Board Setup
+---
+
+### Board Setup
 
 Download the latest [JetPack](https://developer.nvidia.com/embedded/jetpack) for TXs to the host PC. JetPack is the portal for flashing the Jetson with the latest Board Support Package (BSP). Besides, JetPack also automatically installs tools for the host like CUDA Toolkit. Please select the right release for TX series from download page.
 
@@ -39,9 +41,15 @@ Then follow the instructions till successful installation.
 
 After installation, login into target board and save its network addresses for next step host access.
 
-#### Host Dev Env Setup
+---
+
+### Host Dev Env Setup
+
+#### Coding Env Prep
 
 We use VS Code for Ubuntu as the general IDE. Please download and install it [here](https://code.visualstudio.com/download)
+
+#### Target Board Access
 
 In order to manage target board easily, here we set up remote desktop on it using **VNC**.
 
@@ -136,5 +144,54 @@ ssh -L 5901:127.0.0.1:5901 -N -f -l nvidia  <Your target board IP, static or tha
 The target board can be accessed remotely from host using **Remmina**, the default VNC client of Ubuntu
 
 <img src="resources/pictures/jetson-tx2-from-vnc.png" alt="Remote Desktop with VNC">
+
+#### GPU Training Environment
+
+In this project NVIDIA GPU will be accessed through [NVIDIA Docker](https://github.com/NVIDIA/nvidia-docker)
+
+**First**, install NVIDIA drivers for your GPU card:
+
+```shell
+# 1. add driver repository to Ubuntu
+sudo add-apt-repository ppa:graphics-drivers/ppa
+# 2. update packages:
+sudo apt update
+# 3. install driver:
+sudo apt install nvidia-<latest version>
+```
+
+**Then**, install Docker following the instructions from [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
+
+**Finally**, install NVIDIA Docker following the instructions from [NVIDIA Docker](https://github.com/NVIDIA/nvidia-docker)
+
+Run the command below to make sure everything works as planned:
+
+```shell
+docker run --runtime=nvidia --rm nvidia/cuda:9.0-base nvidia-smi
+```
+
+Fetch the latest NVIDIA DIGITS image to start the development of deep learning applications [NVIDIA DIGITS Docker User Guide]()
+
+```shell
+docker run --runtime=nvidia --name digits -d -p 5000:5000 nvidia/digits
+```
+
+---
+
+### Model Training and Real-Time Inference
+
+<img src="resources/pictures/overall-workflow.png" alt="Overall Workflow">
+
+#### Training with DIGITS
+
+In this section model training procedure using NVIDIA DIGITS will be illustrated.
+
+Please follow the tutorials under [Training with DIGITS](tutorials/)
+
+#### Inference on Jetson TX2
+
+In this section model inference procedure on Jetson TX2 will be illustrated.
+
+Please follow the tutorials under [Inference on Jetson TX2](tutorials/)
 
 ---
