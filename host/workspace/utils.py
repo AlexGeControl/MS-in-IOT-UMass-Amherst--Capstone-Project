@@ -28,8 +28,40 @@ def get_parser():
     # camera device:
     parser.add_argument(
         '--camera', 
-        type=int, default=0
+        type=int, default=0,
+        help='set camera ID for real-time motion evaluation.'
     )
+    # video input:
+    parser.add_argument(
+        '--video', 
+        type=str, default='set-00.mp4',
+        help='select motion video for reference generation. must be file in reference/video'
+    )
+    # video input:
+    parser.add_argument(
+        '--reference', 
+        type=str, default='set-00.json',
+        help='reference motion for real-time evaluation. must be file in reference/json'
+    )
+
+    # time to prepare:
+    parser.add_argument(
+        '--prep-time', 
+        type=float, default=20.0,
+        help='time to prepare before evaluation starts.'
+    )
+    # time to prepare:
+    parser.add_argument(
+        '--d-max', 
+        type=float, default=1.57,
+        help='max allowable distance.'
+    )
+    parser.add_argument(
+        '--s-min', 
+        type=float, default=20,
+        help='base score.'
+    )
+
     # model input size:
     parser.add_argument(
         '--resize', 

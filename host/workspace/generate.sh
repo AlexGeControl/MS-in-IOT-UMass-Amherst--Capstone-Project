@@ -1,9 +1,6 @@
 #!/bin/bash
-python3 launch-frontend.py \
-    --camera=0 \
-    --input-mode=left \
-    --reference=set-00.json \
-    --prep-time=20.0 \
+python3 generate-reference.py \
+    --video=set-00.mp4 \
     --resize=432x368 \
     --resize-out-ratio=5.0 \
     --model=mobilenet_v2_large \
