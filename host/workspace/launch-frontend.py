@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 
 import cv2
 import json
@@ -161,11 +162,15 @@ class Canvas(object):
 class MotionEvaluator(object):
     __slots__ = (
         'reference',
+        'prep_time',
         'start_time',
         'frame_index',
         'trajectories',
         'd_max',
         's_min',
+        'current_distance',
+        'current_score',
+        'scores',
         'show_process'
     )
 
@@ -174,8 +179,11 @@ class MotionEvaluator(object):
         input_filename = os.path.join("reference/json", args.reference)
         with open(input_filename, 'r') as input_reference: 
             self.reference = json.load(input_reference)
+        self.prep_time = args.prep_time
         self.d_max = args.d_max
         self.s_min = args.s_min
+        self.current_distance = self.d_max
+        self.current_score = self.s_min
         # init time reference:
         self.start_time = 0
         self.frame_index = 0
@@ -186,6 +194,7 @@ class MotionEvaluator(object):
                 common.CocoPart.LAnkle.value + 1
             )
         }
+        self.scores = []
         self.show_process = args.show_process
     
     def _scale(self, human):
@@ -275,16 +284,23 @@ class MotionEvaluator(object):
         # TODO: enable multiple exerciser
         human = humans[0]
 
-        timestamp = None
         if self.start_time == 0: 
             self.start_time = time.time()
-            timestamp = 0.0
+            self.timestamp = 0.0
         else:
-            timestamp = time.time() - self.start_time
+            self.timestamp = time.time() - self.start_time
+
+        # if timeout, return None
+        if (self.timestamp >= self.prep_time + self.reference["duration"]):
+            return None
+        elif (self.timestamp < self.prep_time)
+            return "Get READY within %d Seconds!" % (
+                int(self.prep_time - self.timestamp)
+            )
 
         # extract joint positions:
         for (i, (x, y)) in self._scale(human):
-            self.trajectories[i]["t"].append(timestamp)
+            self.trajectories[i]["t"].append(self.timestamp)
             self.trajectories[i]["x"].append(x)
             self.trajectories[i]["y"].append(y)
 
@@ -293,16 +309,30 @@ class MotionEvaluator(object):
         if (self.frame_index == self.reference["FPS"]):
             self.frame_index = 0
             # get average distance:
-            distance = self._evaluate()
-            score = self._score(distance)
-            return score
-        return None
+            self.current_distance = self._evaluate()
+            self.current_score = self._score(self.current_distance)
 
-    def save(self, filename):
-        """ Save trajectories as JSON
+            self.scores.append(
+                {
+                    "timestamp": self.timestamp,
+                    "score": self.current_score
+                }
+            )
+        return "Current Score: %d" % (
+            int(self.current_score)
+        )
+
+    def save(self):
+        """ Save evaluation as JSON
         """        
-        with open(filename, 'w') as output_trajectories:
-            json.dump(self.trajectories, output_trajectories)
+        filename = "%s-%s.json" % (
+            self.reference["name"],
+            datetime.datetime.now().strftime("%B-%d-%Y--%I:%M%p")
+        )
+        # add dir name:
+        filename = os.path.join("evaluation", filename)
+        with open(filename, 'w') as output_evaluation:
+            json.dump(self.scores, output_evaluation)
 
 if __name__ == '__main__':
     # parse arguments:
@@ -317,8 +347,6 @@ if __name__ == '__main__':
     # init evaluator:
     evaluator = MotionEvaluator(args)
 
-    start_time = time.time()
-    score = 0
     while True:
         # fetch frame:
         image = camera.read()
@@ -331,19 +359,10 @@ if __name__ == '__main__':
             draw_pose=True
         )
 
-        current_time = time.time() - start_time
-        captain = None
-        if (current_time >= args.prep_time + evaluator.reference["duration"]):
+        # get captain:
+        captain = evaluator.evaluate(humans)
+        if captain is None:
             break
-        elif (current_time > args.prep_time):
-            # add new observation:
-            current_score = evaluator.evaluate(humans)
-            if not (current_score is None):
-                score = current_score
-                print("%f -- %f" % (current_time, score))
-            captain = "Score: %f" % score
-        else:
-            captain = "Get Ready within %f Seconds" % (args.prep_time - current_time)
 
         # show prompt:
         canvas.show(
@@ -354,5 +373,6 @@ if __name__ == '__main__':
         if shall_terminate():
             break
 
-    #evaluator.save("observations.json")
+    # save evaluation:
+    evaluator.save()
     canvas.tear_down()

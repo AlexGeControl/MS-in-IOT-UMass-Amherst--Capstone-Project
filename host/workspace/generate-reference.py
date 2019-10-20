@@ -207,6 +207,8 @@ class ReferenceGenerator(object):
 
         self.frame_index += 1
 
+        return self.frame_index
+
     def save(self, ref_video, eval_FPS):
         """ Save trajectories as JSON
         """        
@@ -221,6 +223,7 @@ class ReferenceGenerator(object):
 
         # init motion reference output:
         motion_reference = {}
+        motion_reference["name"] = ref_video.name
         motion_reference["duration"] = eval_ts[-1]
         motion_reference["FPS"] = eval_FPS
         motion_reference["reference"] = {}
@@ -238,7 +241,7 @@ class ReferenceGenerator(object):
                 motion_reference["reference"][i][k] = eval_ys.tolist()
 
         # save:
-        output_filename = os.path.join("reference/json", "%s.json" % (video.name))
+        output_filename = os.path.join("reference/json", "%s.json" % (ref_video.name))
         with open(output_filename, 'w') as output_motion_reference:
             json.dump(motion_reference, output_motion_reference)
 
@@ -267,12 +270,12 @@ if __name__ == '__main__':
             draw_pose=True
         )
         # add new observation:
-        generator.append(humans)
+        index = generator.append(humans)
 
         # show prompt:
         canvas.show(
             image = image_with_pose_drawn,
-            captain = "Motion Ref. Gen."
+            captain = "Motion Ref. Gen. -- Frame %d" % (index)
         )
 
         if shall_terminate():
