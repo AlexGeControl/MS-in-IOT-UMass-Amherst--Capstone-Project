@@ -72,6 +72,7 @@ class Camera(object):
             
             return image
         except Exception as e:
+            print(e)
             return None
 
 
@@ -165,6 +166,7 @@ class MotionEvaluator(object):
         'prep_time',
         'start_time',
         'frame_index',
+        'timestamp',
         'trajectories',
         'd_max',
         's_min',
@@ -187,6 +189,7 @@ class MotionEvaluator(object):
         # init time reference:
         self.start_time = 0
         self.frame_index = 0
+        self.timestamp = 0.0
         # set trajectory container:
         self.trajectories = {
             i: {"t": [], "x": [], "y": []} for i in range(
@@ -278,12 +281,7 @@ class MotionEvaluator(object):
     def evaluate(self, humans):
         """ Add new observation
         """
-        if len(humans) == 0:
-            return
-
-        # TODO: enable multiple exerciser
-        human = humans[0]
-
+        # update timestamp:
         if self.start_time == 0: 
             self.start_time = time.time()
             self.timestamp = 0.0
@@ -293,14 +291,20 @@ class MotionEvaluator(object):
         # if timeout, return None
         if (self.timestamp >= self.prep_time + self.reference["duration"]):
             return None
-        elif (self.timestamp < self.prep_time)
+        elif (self.timestamp < self.prep_time):
             return "Get READY within %d Seconds!" % (
                 int(self.prep_time - self.timestamp)
             )
 
+        if len(humans) == 0:
+            return
+
+        # TODO: enable multiple exerciser
+        human = humans[0]
+
         # extract joint positions:
         for (i, (x, y)) in self._scale(human):
-            self.trajectories[i]["t"].append(self.timestamp)
+            self.trajectories[i]["t"].append(self.timestamp - self.prep_time)
             self.trajectories[i]["x"].append(x)
             self.trajectories[i]["y"].append(y)
 
@@ -314,10 +318,11 @@ class MotionEvaluator(object):
 
             self.scores.append(
                 {
-                    "timestamp": self.timestamp,
+                    "timestamp": self.timestamp - self.prep_time,
                     "score": self.current_score
                 }
             )
+
         return "Current Score: %d" % (
             int(self.current_score)
         )
@@ -358,7 +363,7 @@ if __name__ == '__main__':
             image = image, 
             draw_pose=True
         )
-
+    
         # get captain:
         captain = evaluator.evaluate(humans)
         if captain is None:

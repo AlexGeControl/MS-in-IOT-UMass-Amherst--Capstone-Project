@@ -34,7 +34,7 @@ RUN apt-fast update && \
     rm -rf /var/lib/apt/lists/*
 
 # install pre-requisites:
-RUN pip3 install tensorflow-gpu==1.14 slidingwindow Cython
+RUN pip3 install tensorflow-gpu==1.14 slidingwindow Cython similaritymeasures
 
 # install tf-pose-estimation:
 WORKDIR /opt/
