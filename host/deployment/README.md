@@ -8,6 +8,7 @@ This Docker solution provides a running environment for tf-openpose with nvidia 
 
 ```shell
 docker build -t intelli-train:frontend -f frontend.Dockerfile .
+docker build -t intelli-train:backend -f backend.Dockerfile .
 ```
 
 ## Launch

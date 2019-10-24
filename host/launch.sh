@@ -1,6 +1,7 @@
 #!/bin/bash
 export HOST_DEVICE_ID=/dev/video1
 export HOST_VNC_PORT=5901
+export HOST_BACKEND_PORT=60080
 
 docker run --rm \
    --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=0 \
@@ -8,7 +9,18 @@ docker run --rm \
    -p $HOST_VNC_PORT:5901 \
    -v $PWD/workspace:/workspace \
    --name=frontend \
-   intelli-train:frontend
+   intelli-train:frontend &
+
+docker run --rm \
+   --network=host \
+   --name=database \
+   mongo:latest &
+
+docker run --rm \
+   --network=host \
+   -v $PWD/workspace/webapp:/app \
+   --name=backend \
+   intelli-train:backend &
 
 
 
