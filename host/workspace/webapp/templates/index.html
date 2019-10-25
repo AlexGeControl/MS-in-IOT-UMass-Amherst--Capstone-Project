@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<div id="evaluation-result-visualization" style="width: 100%; height: 600px;">
+</div>
+
+<script type="text/javascript">
+    var canvas = echarts.init(
+        document.getElementById(
+            "evaluation-result-visualization"
+        )
+    );
+
+    $.get(
+        "/read"
+    ).done(
+        function (data) {
+            var option = {
+                title: {
+                    text: 'Real-Time Evaluation Results'
+                },
+                xAxis: {},
+                yAxis: {},
+                series: data,
+            };
+
+            canvas.setOption(option, true);
+        }
+    );
+</script>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 #!/bin/bash
-export HOST_DEVICE_ID=/dev/video1
+export HOST_DEVICE_ID=/dev/video0
 export HOST_VNC_PORT=5901
 export HOST_BACKEND_PORT=60080
 

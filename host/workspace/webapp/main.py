@@ -4,7 +4,7 @@ import pymongo
 from flask import Flask
 from flask_pymongo import PyMongo
 
-from flask import request
+from flask import request, render_template, jsonify
 
 import json
 
@@ -14,7 +14,7 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def home():
-    return "Welcome to Intelli Train!"
+    return render_template("index.html")
 
 
 @app.route("/create", methods=['POST'])
@@ -46,12 +46,16 @@ def read_evaluation():
     for evaluation in evaluations:
         response.append(
             {
-                "timestamp": evaluation["timestamp"],
-                "evaluation": evaluation["evaluation"]
+                "data": [
+                    [
+                        int(round(e["timestamp"])), int(round(e["score"]))
+                    ] for e in evaluation["evaluation"]
+                ],
+                "type": "line"
             }
         )
     
-    return json.dumps(response)
+    return jsonify(response)
 
 
 if __name__ == "__main__":
